@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   StyleSheet,
   TouchableOpacity,
+  View,
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 
@@ -103,7 +104,9 @@ export default function HomeScreen() {
         <StatusBar style="dark" />
 
         {/* 헤더 영역 */}
-        <HeaderWithLogo onLogoPress={handleLogoPress} />
+        <View style={{ marginTop: 10 }}>
+          <HeaderWithLogo onLogoPress={handleLogoPress} />
+        </View>
 
         {/* 인사말 영역 */}
         <ThemedView

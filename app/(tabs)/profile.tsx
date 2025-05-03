@@ -27,7 +27,9 @@ export default function ProfileScreen() {
         <StatusBar style="dark" backgroundColor="#ffffff" />
 
         {/* 헤더 영역 */}
-        <HeaderWithLogo />
+        <View style={{ marginTop: 10 }}>
+          <HeaderWithLogo />
+        </View>
 
         {/* 제목 및 설정 아이콘 */}
         <View style={[styles.titleContainer, { backgroundColor: '#ffffff' }]}>
