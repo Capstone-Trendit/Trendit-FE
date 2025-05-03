@@ -9,6 +9,7 @@ import {
   Animated,
   BackHandler,
   Keyboard,
+  KeyboardAvoidingView,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -392,65 +393,45 @@ export default function ProductRegisterScreen() {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
-      }).start(() => {
-        // 애니메이션이 완료된 후 가격 입력란으로 자동 포커스
-        setTimeout(() => {
-          if (priceInputRef.current) {
-            priceInputRef.current.focus();
-
-            // 포커스 후 적절한 위치로 스크롤
-            setTimeout(() => {
-              if (productName.trim() !== '' && priceContainerRef.current) {
-                priceContainerRef.current.measure(
-                  (fx, fy, width, height, px, py) => {
-                    scrollViewRef.current?.scrollTo({
-                      y: Math.max(0, py - 100),
-                      animated: true,
-                    });
-                  }
-                );
-              }
-            }, 100);
-          }
-        }, 50);
-      });
+      }).start();
     }
   }, [productName, fadeAnim]);
 
   useEffect(() => {
-    if (productName.trim() !== '' && productPrice !== '') {
+    if (productPrice !== '') {
       Animated.timing(fadeAnim2, {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
-      }).start(() => {
-        // 애니메이션이 완료된 후 수량 입력란으로 자동 포커스
-        setTimeout(() => {
-          if (quantityInputRef.current) {
-            quantityInputRef.current.focus();
-
-            // 포커스 후 적절한 위치로 스크롤
-            setTimeout(() => {
-              if (
-                productName.trim() !== '' &&
-                productPrice !== '' &&
-                quantityContainerRef.current
-              ) {
-                quantityContainerRef.current.measure(
-                  (fx, fy, width, height, px, py) => {
-                    scrollViewRef.current?.scrollTo({
-                      y: Math.max(0, py - 100),
-                      animated: true,
-                    });
-                  }
-                );
-              }
-            }, 100);
-          }
-        }, 50);
-      });
+      }).start();
     }
-  }, [productPrice, fadeAnim2, productName]);
+  }, [productPrice, fadeAnim2]);
+
+  // 필드 포커스 시 스크롤 조정을 위한 함수 추가
+  const scrollToField = useCallback((ref: React.RefObject<any>) => {
+    if (ref && ref.current) {
+      setTimeout(() => {
+        ref.current?.measure?.(
+          (
+            fx: number,
+            fy: number,
+            width: number,
+            height: number,
+            px: number,
+            py: number
+          ) => {
+            if (scrollViewRef.current) {
+              // 필드가 화면 중앙에 오도록 스크롤
+              scrollViewRef.current.scrollTo({
+                y: Math.max(0, py - 150),
+                animated: true,
+              });
+            }
+          }
+        );
+      }, 100);
+    }
+  }, []);
 
   const renderImageUploadStep = () => {
     return (
@@ -532,7 +513,7 @@ export default function ProductRegisterScreen() {
         <ScrollView
           ref={scrollViewRef}
           style={{ flex: 1 }}
-          contentContainerStyle={{ paddingBottom: 150 }} // 고정된 여백 설정
+          contentContainerStyle={{ paddingBottom: 200 }} // 고정된 여백 설정 증가
           keyboardShouldPersistTaps="handled"
         >
           <View style={[styles.section, { marginTop: 20 }]}>
@@ -550,19 +531,31 @@ export default function ProductRegisterScreen() {
                 style={styles.input}
                 placeholder="상품명을 입력해주세요"
                 value={productName}
-                onChangeText={setProductName}
+                onChangeText={(text) => {
+                  // 최대 20자로 제한
+                  if (text.length <= 20) {
+                    setProductName(text);
+                  }
+                }}
+                maxLength={20} // maxLength 속성 추가
                 placeholderTextColor="#999"
                 autoFocus={true}
                 returnKeyType="next"
                 onSubmitEditing={() => {
-                  if (productName.trim() !== '') {
-                    priceInputRef.current?.focus();
+                  if (priceInputRef.current) {
+                    priceInputRef.current.focus();
+                    scrollToField(priceContainerRef);
                   }
                 }}
+                blurOnSubmit={false}
               />
+              {/* 글자 수 표시 추가 */}
+              <ThemedText style={styles.charCount}>
+                {productName.length}/20
+              </ThemedText>
             </View>
 
-            {/* 상품명이 입력되었을 때만 가격 입력란 표시 */}
+            {/* 가격 입력란 - 항상 표시하되 애니메이션으로 자연스럽게 표시 */}
             <Animated.View
               ref={priceContainerRef}
               style={[
@@ -580,34 +573,40 @@ export default function ProductRegisterScreen() {
                 },
               ]}
             >
-              {productName.trim() !== '' && (
-                <>
-                  <ThemedText style={styles.inputLabel}>가격</ThemedText>
-                  <View style={styles.priceInputContainer}>
-                    <ThemedText style={styles.currencySymbol}>₩</ThemedText>
-                    <TextInput
-                      ref={priceInputRef}
-                      style={styles.priceInput}
-                      placeholder="가격을 입력해주세요"
-                      value={formatPrice(productPrice)}
-                      onChangeText={(text) =>
-                        handleNumericInput(text, setProductPrice)
-                      }
-                      placeholderTextColor="#999"
-                      keyboardType="numeric"
-                      returnKeyType="next"
-                      onSubmitEditing={() => {
-                        if (productPrice !== '') {
-                          quantityInputRef.current?.focus();
-                        }
-                      }}
-                    />
-                  </View>
-                </>
-              )}
+              <ThemedText style={styles.inputLabel}>가격</ThemedText>
+              <View style={styles.priceInputContainer}>
+                <ThemedText style={styles.currencySymbol}>₩</ThemedText>
+                <TextInput
+                  ref={priceInputRef}
+                  style={styles.priceInput}
+                  placeholder="가격을 입력해주세요"
+                  value={formatPrice(productPrice)}
+                  onChangeText={(text) => {
+                    handleNumericInput(text, setProductPrice);
+                    // 입력이 시작되면 다음 필드 보이게 준비
+                    if (text && quantityInputRef.current) {
+                      Animated.timing(fadeAnim2, {
+                        toValue: 1,
+                        duration: 300,
+                        useNativeDriver: true,
+                      }).start();
+                    }
+                  }}
+                  placeholderTextColor="#999"
+                  keyboardType="numeric"
+                  returnKeyType="next"
+                  onSubmitEditing={() => {
+                    if (quantityInputRef.current) {
+                      quantityInputRef.current.focus();
+                      scrollToField(quantityContainerRef);
+                    }
+                  }}
+                  blurOnSubmit={false}
+                />
+              </View>
             </Animated.View>
 
-            {/* 가격이 입력되었을 때만 수량 입력란 표시 */}
+            {/* 수량 입력란 - 항상 표시하되 애니메이션으로 자연스럽게 표시 */}
             <Animated.View
               ref={quantityContainerRef}
               style={[
@@ -622,67 +621,71 @@ export default function ProductRegisterScreen() {
                       }),
                     },
                   ],
+                  marginBottom: 120, // 키보드 버튼을 위한 추가 여백
                 },
               ]}
             >
-              {productName.trim() !== '' && productPrice !== '' && (
-                <>
-                  <ThemedText style={styles.inputLabel}>수량</ThemedText>
-                  <View style={styles.priceInputContainer}>
-                    <TextInput
-                      ref={quantityInputRef}
-                      style={styles.quantityInput}
-                      placeholder="수량을 입력해주세요"
-                      value={productQuantity}
-                      onChangeText={(text) =>
-                        handleNumericInput(text, setProductQuantity)
-                      }
-                      placeholderTextColor="#999"
-                      keyboardType="numeric"
-                      returnKeyType="done"
-                    />
-                    <ThemedText style={styles.unitSymbol}>개</ThemedText>
-                  </View>
-                </>
-              )}
+              <ThemedText style={styles.inputLabel}>수량</ThemedText>
+              <View style={styles.priceInputContainer}>
+                <TextInput
+                  ref={quantityInputRef}
+                  style={styles.quantityInput}
+                  placeholder="수량을 입력해주세요"
+                  value={productQuantity}
+                  onChangeText={(text) => {
+                    handleNumericInput(text, setProductQuantity);
+                  }}
+                  placeholderTextColor="#999"
+                  keyboardType="numeric"
+                  returnKeyType="done"
+                  onSubmitEditing={() => {
+                    Keyboard.dismiss();
+                    // 모든 필드가 채워졌으면 다음 단계로 자동 이동
+                    if (productName.trim() && productPrice && productQuantity) {
+                      goToNextStep();
+                    }
+                  }}
+                />
+                <ThemedText style={styles.unitSymbol}>개</ThemedText>
+              </View>
             </Animated.View>
           </View>
         </ScrollView>
 
-        {/* 다음 버튼은 모든 필드가 채워졌을 때만 활성화 */}
-        <View
-          style={[
-            styles.bottomButtonContainer,
-            keyboardShown && {
-              bottom: Platform.OS === 'ios' ? 10 : keyboardHeight + 10,
-            }, // iOS와 Android에 맞게 위치 조정
-          ]}
+        {/* 다음 버튼 - 키보드 상태와 관계없이 항상 하단에 고정 */}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.keyboardAvoidingContainer}
         >
-          <TouchableOpacity
-            style={[
-              styles.nextButton,
-              !productName.trim() || !productPrice || !productQuantity
-                ? styles.disabledButton
-                : null,
-            ]}
-            onPress={() => {
-              Keyboard.dismiss();
-              goToNextStep();
-            }}
-            disabled={!productName.trim() || !productPrice || !productQuantity}
-          >
-            <ThemedText
+          <View style={styles.fixedBottomButtonContainer}>
+            <TouchableOpacity
               style={[
-                styles.nextButtonText,
+                styles.nextButton,
                 !productName.trim() || !productPrice || !productQuantity
-                  ? styles.disabledButtonText
+                  ? styles.disabledButton
                   : null,
               ]}
+              onPress={() => {
+                Keyboard.dismiss();
+                goToNextStep();
+              }}
+              disabled={
+                !productName.trim() || !productPrice || !productQuantity
+              }
             >
-              다음
-            </ThemedText>
-          </TouchableOpacity>
-        </View>
+              <ThemedText
+                style={[
+                  styles.nextButtonText,
+                  !productName.trim() || !productPrice || !productQuantity
+                    ? styles.disabledButtonText
+                    : null,
+                ]}
+              >
+                다음
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
       </View>
     );
   };
@@ -1469,8 +1472,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 8,
     paddingTop: 8,
+    zIndex: 100,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  keyboardAvoidingContainer: {
+    width: '100%',
     position: 'absolute',
     bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  fixedBottomButtonContainer: {
+    width: '100%',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     backgroundColor: '#ffffff',
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
@@ -1480,5 +1499,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
+  },
+  // 글자 수 카운터를 위한 스타일 추가
+  charCount: {
+    fontSize: 12,
+    color: '#999',
+    alignSelf: 'flex-end',
+    marginTop: 4,
   },
 });
