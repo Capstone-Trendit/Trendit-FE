@@ -45,6 +45,8 @@ const MAPPING = {
   gear: 'settings',
   'photo.fill': 'photo',
   'camera.fill': 'camera',
+  'exclamationmark.circle': 'error',
+  photo: 'insert-photo',
 } as IconMapping;
 
 /**

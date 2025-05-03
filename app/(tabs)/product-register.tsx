@@ -448,6 +448,7 @@ export default function ProductRegisterScreen() {
                 borderColor: '#3182f5',
                 borderStyle: 'solid',
                 borderRadius: 8,
+                marginBottom: 20,
               },
             ]}
             onPress={image ? pickImage : undefined}
@@ -473,7 +474,7 @@ export default function ProductRegisterScreen() {
             )}
           </TouchableOpacity>
 
-          <View style={styles.buttonOuterContainer}>
+          <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={styles.buttonCamera}
               onPress={takePhoto}
@@ -1071,22 +1072,19 @@ const styles = StyleSheet.create({
     color: '#3182f5',
     fontSize: 16,
   },
-  buttonOuterContainer: {
+  buttonContainer: {
     flexDirection: 'row',
-    marginTop: 20,
-    backgroundColor: '#ffffff',
-    width: '100%',
     justifyContent: 'space-between',
-    marginHorizontal: -10,
+    width: '100%',
+    paddingHorizontal: 0,
   },
   buttonCamera: {
-    flex: 1,
     backgroundColor: '#f8f9fa',
     borderRadius: 12,
-    padding: 12,
+    padding: 14,
     alignItems: 'center',
-    marginHorizontal: 10,
     borderWidth: 0,
+    width: '48%',
     shadowColor: 'transparent',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
@@ -1094,12 +1092,11 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   buttonGallery: {
-    flex: 1,
     backgroundColor: '#f8f9fa',
     borderRadius: 12,
-    padding: 12,
+    padding: 14,
     alignItems: 'center',
-    marginHorizontal: 10,
+    width: '48%',
     borderWidth: 0,
     shadowColor: 'transparent',
     shadowOffset: { width: 0, height: 0 },
@@ -1117,7 +1114,7 @@ const styles = StyleSheet.create({
     padding: 14,
     alignItems: 'center',
     marginTop: 20,
-    width: 346,
+    width: '100%',
     alignSelf: 'center',
     height: 50,
     justifyContent: 'center',
@@ -1148,11 +1145,6 @@ const styles = StyleSheet.create({
   },
   disabledButtonText: {
     color: '#999',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    marginBottom: 30,
-    justifyContent: 'center',
   },
   placeholderContainer: {
     flex: 1,
