@@ -190,7 +190,12 @@ export default function HomeScreen() {
         </ThemedView>
 
         {/* 실시간 구매 현황 */}
-        <ThemedView style={[styles.section, { backgroundColor: '#ffffff' }]}>
+        <ThemedView
+          style={[
+            styles.section,
+            { backgroundColor: '#ffffff', marginBottom: 32 },
+          ]}
+        >
           <ThemedText
             style={{ color: '#000000', fontWeight: '700' }}
             type="subtitle"
