@@ -84,9 +84,6 @@ export default function ProductRegisterScreen() {
   const router = useRouter();
   const navigation = useNavigation();
 
-  const [keyboardShown, setKeyboardShown] = useState(false);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
-
   // 상태 초기화 함수
   const resetProductState = () => {
     setImage(null);
@@ -237,15 +234,13 @@ export default function ProductRegisterScreen() {
     const keyboardDidShowListener = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
       (e) => {
-        setKeyboardShown(true);
-        setKeyboardHeight(e.endCoordinates.height);
+        // 키보드 관련 상태 업데이트 제거
       }
     );
     const keyboardDidHideListener = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
       () => {
-        setKeyboardShown(false);
-        setKeyboardHeight(0);
+        // 키보드 관련 상태 업데이트 제거
       }
     );
 
@@ -1494,11 +1489,11 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
     zIndex: 100,
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    elevation: 0,
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
   },
   // 글자 수 카운터를 위한 스타일 추가
   charCount: {
