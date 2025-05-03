@@ -80,6 +80,39 @@ export default function ProductRegisterScreen() {
   const router = useRouter();
   const navigation = useNavigation();
 
+  // 상태 초기화 함수
+  const resetProductState = () => {
+    setImage(null);
+    setProductName('');
+    setProductPrice('');
+    setProductQuantity('');
+    setTags([]);
+    setCurrentStep(RegisterStep.IMAGE_UPLOAD);
+    setIsRegistered(false);
+  };
+
+  // 경고 알림 표시 함수 - 의존성 문제를 해결하기 위해 위로 이동
+  const showExitAlert = useCallback(() => {
+    Alert.alert(
+      '상품 등록을 중단하시겠습니까?',
+      '상품 등록을 중단하면 입력한 내용이 저장되지 않습니다.',
+      [
+        { text: '계속 작성하기', style: 'cancel' },
+        {
+          text: '나가기',
+          style: 'destructive',
+          onPress: () => {
+            // 상태 초기화
+            resetProductState();
+            // 네비게이션 허용
+            router.push('/');
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  }, [router]);
+
   // 화면을 떠날 때 경고 표시
   useEffect(() => {
     // 작성 중인 내용이 있는지 확인하는 함수
@@ -135,40 +168,8 @@ export default function ProductRegisterScreen() {
     productQuantity,
     tags,
     isRegistered,
+    showExitAlert,
   ]);
-
-  // 경고 알림 표시 함수
-  const showExitAlert = useCallback(() => {
-    Alert.alert(
-      '상품 등록을 중단하시겠습니까?',
-      '상품 등록을 중단하면 입력한 내용이 저장되지 않습니다.',
-      [
-        { text: '계속 작성하기', style: 'cancel' },
-        {
-          text: '나가기',
-          style: 'destructive',
-          onPress: () => {
-            // 상태 초기화
-            resetProductState();
-            // 네비게이션 허용
-            router.push('/');
-          },
-        },
-      ],
-      { cancelable: true }
-    );
-  }, [router]);
-
-  // 상태 초기화 함수
-  const resetProductState = () => {
-    setImage(null);
-    setProductName('');
-    setProductPrice('');
-    setProductQuantity('');
-    setTags([]);
-    setCurrentStep(RegisterStep.IMAGE_UPLOAD);
-    setIsRegistered(false);
-  };
 
   useEffect(() => {
     (async () => {
