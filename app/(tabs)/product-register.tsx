@@ -8,7 +8,7 @@ import {
   Alert,
   Animated,
   BackHandler,
-  KeyboardAvoidingView,
+  Keyboard,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -76,9 +76,15 @@ export default function ProductRegisterScreen() {
   // 텍스트 입력 레퍼런스
   const priceInputRef = useRef<TextInput>(null);
   const quantityInputRef = useRef<TextInput>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const priceContainerRef = useRef<View>(null);
+  const quantityContainerRef = useRef<View>(null);
 
   const router = useRouter();
   const navigation = useNavigation();
+
+  const [keyboardShown, setKeyboardShown] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   // 상태 초기화 함수
   const resetProductState = () => {
@@ -225,6 +231,29 @@ export default function ProductRegisterScreen() {
     isRegistered,
   ]);
 
+  // 키보드 이벤트 리스너 추가
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => {
+        setKeyboardShown(true);
+        setKeyboardHeight(e.endCoordinates.height);
+      }
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setKeyboardShown(false);
+        setKeyboardHeight(0);
+      }
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
+
   const takePhoto = async () => {
     if (cameraPermission) {
       const result = await ImagePicker.launchCameraAsync({
@@ -363,7 +392,28 @@ export default function ProductRegisterScreen() {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
-      }).start();
+      }).start(() => {
+        // 애니메이션이 완료된 후 가격 입력란으로 자동 포커스
+        setTimeout(() => {
+          if (priceInputRef.current) {
+            priceInputRef.current.focus();
+
+            // 포커스 후 적절한 위치로 스크롤
+            setTimeout(() => {
+              if (productName.trim() !== '' && priceContainerRef.current) {
+                priceContainerRef.current.measure(
+                  (fx, fy, width, height, px, py) => {
+                    scrollViewRef.current?.scrollTo({
+                      y: Math.max(0, py - 100),
+                      animated: true,
+                    });
+                  }
+                );
+              }
+            }, 100);
+          }
+        }, 50);
+      });
     }
   }, [productName, fadeAnim]);
 
@@ -373,7 +423,32 @@ export default function ProductRegisterScreen() {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
-      }).start();
+      }).start(() => {
+        // 애니메이션이 완료된 후 수량 입력란으로 자동 포커스
+        setTimeout(() => {
+          if (quantityInputRef.current) {
+            quantityInputRef.current.focus();
+
+            // 포커스 후 적절한 위치로 스크롤
+            setTimeout(() => {
+              if (
+                productName.trim() !== '' &&
+                productPrice !== '' &&
+                quantityContainerRef.current
+              ) {
+                quantityContainerRef.current.measure(
+                  (fx, fy, width, height, px, py) => {
+                    scrollViewRef.current?.scrollTo({
+                      y: Math.max(0, py - 100),
+                      animated: true,
+                    });
+                  }
+                );
+              }
+            }, 100);
+          }
+        }, 50);
+      });
     }
   }, [productPrice, fadeAnim2, productName]);
 
@@ -454,7 +529,12 @@ export default function ProductRegisterScreen() {
   const renderProductInfoStep = () => {
     return (
       <View style={{ flex: 1 }}>
-        <ScrollView style={{ flex: 1 }}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingBottom: 150 }} // 고정된 여백 설정
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={[styles.section, { marginTop: 20 }]}>
             <ThemedText
               style={{ color: '#000000', fontWeight: '700' }}
@@ -484,6 +564,7 @@ export default function ProductRegisterScreen() {
 
             {/* 상품명이 입력되었을 때만 가격 입력란 표시 */}
             <Animated.View
+              ref={priceContainerRef}
               style={[
                 styles.inputContainer,
                 {
@@ -528,6 +609,7 @@ export default function ProductRegisterScreen() {
 
             {/* 가격이 입력되었을 때만 수량 입력란 표시 */}
             <Animated.View
+              ref={quantityContainerRef}
               style={[
                 styles.inputContainer,
                 {
@@ -568,7 +650,14 @@ export default function ProductRegisterScreen() {
         </ScrollView>
 
         {/* 다음 버튼은 모든 필드가 채워졌을 때만 활성화 */}
-        <View style={styles.bottomButtonContainer}>
+        <View
+          style={[
+            styles.bottomButtonContainer,
+            keyboardShown && {
+              bottom: Platform.OS === 'ios' ? 10 : keyboardHeight + 10,
+            }, // iOS와 Android에 맞게 위치 조정
+          ]}
+        >
           <TouchableOpacity
             style={[
               styles.nextButton,
@@ -576,7 +665,10 @@ export default function ProductRegisterScreen() {
                 ? styles.disabledButton
                 : null,
             ]}
-            onPress={goToNextStep}
+            onPress={() => {
+              Keyboard.dismiss();
+              goToNextStep();
+            }}
             disabled={!productName.trim() || !productPrice || !productQuantity}
           >
             <ThemedText
@@ -864,11 +956,7 @@ export default function ProductRegisterScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: '#ffffff' }]}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
-      >
+      <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
         <View
           style={[
             styles.container,
@@ -902,7 +990,7 @@ export default function ProductRegisterScreen() {
           {currentStep === RegisterStep.CONFIRMATION &&
             renderConfirmationStep()}
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -1379,6 +1467,18 @@ const styles = StyleSheet.create({
   bottomButtonContainer: {
     width: '100%',
     paddingHorizontal: 16,
-    paddingBottom: 20,
+    paddingBottom: 8,
+    paddingTop: 8,
+    position: 'absolute',
+    bottom: 0,
+    backgroundColor: '#ffffff',
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+    zIndex: 100,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
 });

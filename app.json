@@ -9,13 +9,15 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.cllaude99.trendit"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "package": "com.cllaude99.trendit",
       "edgeToEdgeEnabled": true
     },
     "web": {
@@ -37,6 +39,20 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ac6e2198-134d-4886-a8ff-d231d0cf3c9a"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/ac6e2198-134d-4886-a8ff-d231d0cf3c9a",
+      "enabled": true,
+      "fallbackToCacheTimeout": 0
     }
   }
 }
