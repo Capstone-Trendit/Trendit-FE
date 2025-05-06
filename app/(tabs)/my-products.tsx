@@ -1,5 +1,4 @@
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import {
@@ -57,7 +56,6 @@ const DUMMY_PRODUCTS: Product[] = [
 export default function MyProductsScreen() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   // 상품 데이터 로드 (실제로는 API 호출)
   useEffect(() => {

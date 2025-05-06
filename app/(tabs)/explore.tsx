@@ -11,7 +11,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 export default function TabTwoScreen() {
   return (
     <ThemedView style={[styles.container, { backgroundColor: '#ffffff' }]}>
-      <StatusBar style="dark" />
+      <StatusBar backgroundColor="#ffffff" barStyle="dark-content" />
       <ThemedText style={{ color: '#000000' }} type="title">
         탐색
       </ThemedText>
